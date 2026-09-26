@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Atendimento Digital | Banco</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="bank-wrapper">
+        <!-- Barra Superior Estilo Banco -->
+        <header class="bank-header">
+            <div class="logo-area">
+                <span class="bank-logo-icon">🔒</span>
+                <h2>Banco Digital <span>Secure</span></h2>
+            </div>
+            <nav class="bank-nav">
+                <a href="{{ url_for('index') }}" class="nav-link {% if historico is not defined and resultado is not defined %}active{% endif %}">Início</a>
+                <a href="{{ url_for('historico') }}" class="nav-link {% if historico is defined %}active{% endif %}">Histórico de Atendimentos</a>
+            </nav>
+        </header>
+
+        <!-- Conteúdo Principal -->
+        <main class="bank-container">
+            {% if historico is defined %}
+                <section class="card-panel">
+                    <div class="panel-header">
+                        <h2>Histórico de Solicitações NLP</h2>
+                        <p>Registo de todas as triagens automáticas efetuadas pelo sistema.</p>
+                    </div>
+                    
+                    {% if historico %}
+                        <div class="table-responsive">
+                            <table class="bank-table">
+                               <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Data / Hora</th>
+                                        <th>Solicitação do Cliente</th>
+                                        <th>Categoria</th>
+                                        <th>Palavra-Chave</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in historico %}
+                                    <tr>
+                                        <td>#{{ item[0] }}</td>
+                                        <td>{{ item[4] }}</td>
+                                        <td>{{ item[1] }}</td>
+                                        <td><span class="badge {{ item[2]|lower }}">{{ item[2] }}</span></td>
+                                        <td><code>{{ item[3] }}</code></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="empty-msg">Nenhum atendimento registado no banco de dados.</p>
+                    {% endif %}
+                </section>
+            {% else %}
+                <div class="grid-layout">
+                    <!-- Coluna do Formulário -->
+                    <section class="card-panel">
+                        <div class="panel-header">
+                            <h2>Assistente Virtual Inteligente</h2>
+                            <p>Digite sua dúvida ou selecione um exemplo rápido para triagem automática.</p>
+                        </div>
+
+                        <!-- Exemplos Rápidos (Deixa a interface inteligente) -->
+                        <div class="quick-examples">
+                            <span class="examples-label">Sugestões rápidas:</span>
+                            <div class="chips-container">
+                                <button type="button" class="chip" onclick="preencher('Quero bloquear meu cartão por perda')">Bloquear cartão</button>
+                                <button type="button" class="chip" onclick="preencher('Preciso da segunda via do boleto')">2ª via boleto</button>
+                                <button type="button" class="chip" onclick="preencher('Quanto tenho na minha conta?')">Consultar saldo</button>
+                                <button type="button" class="chip" onclick="preencher('Quero fazer um PIX agora')">Fazer PIX</button>
+                            </div>
+                        </div>
+
+                        <form action="/classificar" method="POST" class="bank-form">
+                            <div class="input-group">
+                                <label for="texto">Escreva sua solicitação:</label>
+                                <textarea name="texto" id="texto" rows="4" placeholder="Ex: Preciso transferir dinheiro via chave pix..." required>{{ resultado.texto if resultado else '' }}</textarea>
+                            </div>
+                            <button type="submit" class="btn-primary">CLASSIFICAR ATENDIMENTO</button>
+                        </form>
+                    </section>
+
+                    <!-- Coluna do Resultado -->
+                    <section class="card-panel result-panel">
+                        <div class="panel-header">
+                            <h2>Resultado da Triagem</h2>
+                            <p>Diagnóstico gerado por spaCy e regras de NLP.</p>
+                        </div>
+
+                        {% if resultado %}
+                            <div class="result-box">
+                                <div class="result-item">
+                                    <span class="label">Mensagem Analisada:</span>
+                                    <p class="value-text">"{{ resultado.texto }}"</p>
+                                </div>
+                                <div class="result-item">
+                                    <span class="label">Categoria Atribuída:</span>
+                                    <div><span class="badge {{ resultado.categoria|lower }} large">{{ resultado.categoria }}</span></div>
+                                </div>
+                                <div class="result-item">
+                                    <span class="label">Palavra-Chave Detectada:</span>
+                                    <p><code class="highlight-kw">{{ resultado.palavra_encontrada|upper }}</code></p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="placeholder-result">
+                                <div class="icon-pulse">🤖</div>
+                                <p>Envie uma solicitação ao lado para ver o motor de PLN em ação.</p>
+                            </div>
+                        {% endif %}
+                    </section>
+                </div>
+            {% endif %}
+        </main>
+
+        <!-- Rodapé -->
+        <footer class="bank-footer">
+            <p>&copy; 2026 Banco Digital Secure &bull; Arquitetura MVC com Flask, Pandas e spaCy</p>
+        </footer>
+    </div>
+
+    <!-- Script simples para preencher os botões rápidos -->
+    <script>
+        function preencher(frase) {
+            document.getElementById('texto').value = frase;
+        }
+    </script>
+</body>
+</html>
